@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Kasir Online Final</title>
+    <title>Kasir Online PRO</title>
     <style>
         body { font-family: Arial; padding: 20px; }
         input, button { padding: 8px; margin: 5px; }
         table { border-collapse: collapse; width: 100%; margin-top: 20px; }
         th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
         th { background-color: #f2f2f2; }
+        button { cursor: pointer; }
     </style>
 </head>
 <body>
 
-<h2>🧾 Kasir Online</h2>
+<h2>🧾 Kasir Online PRO</h2>
 
 <input type="text" id="kode" placeholder="Kode / Nama Barang" onkeyup="cariBarang()">
 <input type="text" id="barang" readonly placeholder="Nama">
@@ -27,6 +28,7 @@
 <th>Harga</th>
 <th>Jumlah</th>
 <th>Total</th>
+<th>Aksi</th>
 </tr>
 </thead>
 <tbody id="tabel"></tbody>
@@ -43,13 +45,14 @@
 
 <script>
 
-// LINK GOOGLE SCRIPT (SUDAH DIPASANG)
+// 🔥 LINK GOOGLE SHEETS
 const URL = "https://script.google.com/macros/s/AKfycbwQf6YCXBAK7rgAL0Sch2FgqsStMGULBk0CwDvf5XFZM4fAuTRrcpfmcWHB_fw6zNk/exec";
 
 // DATABASE BARANG
 let db = [
     {kode:"B001", nama:"Beras", beli:10000, jual:12000, stok:50},
     {kode:"B002", nama:"Gula", beli:12000, jual:14000, stok:40},
+    {kode:"B003", nama:"Minyak", beli:15000, jual:18000, stok:30},
 ];
 
 let data = [];
@@ -87,9 +90,10 @@ function render(){
     tabel.innerHTML="";
     let total=0, untung=0;
 
-    data.forEach(d=>{
+    data.forEach((d,i)=>{
         let ttl = d.harga*d.jumlah;
         total+=ttl;
+
         let b = db.find(x=>x.nama==d.nama);
         untung += (d.harga - b.beli)*d.jumlah;
 
@@ -98,11 +102,17 @@ function render(){
         <td>${format(d.harga)}</td>
         <td>${d.jumlah}</td>
         <td>${format(ttl)}</td>
+        <td><button onclick="hapusItem(${i})">❌ Hapus</button></td>
         </tr>`;
     });
 
     grandtotal.innerText=format(total);
     document.getElementById("untung").innerText=format(untung);
+}
+
+function hapusItem(i){
+    data.splice(i,1);
+    render();
 }
 
 function hitungKembalian(){
@@ -111,7 +121,6 @@ function hitungKembalian(){
     kembalian.innerText=format(bayarVal-total);
 }
 
-// 🔥 FUNGSI ONLINE
 function simpanOnline(){
     let total = data.reduce((s,d)=>s+d.harga*d.jumlah,0);
     let untung = data.reduce((s,d)=>{
