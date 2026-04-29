@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kasir Online Final</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        input, button { padding: 8px; margin: 5px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+
+<h2>🧾 Kasir Online</h2>
+
+<input type="text" id="kode" placeholder="Kode / Nama Barang" onkeyup="cariBarang()">
+<input type="text" id="barang" readonly placeholder="Nama">
+<input type="number" id="harga" readonly placeholder="Harga">
+<input type="number" id="jumlah" placeholder="Jumlah">
+<button onclick="tambah()">Tambah</button>
+
+<table>
+<thead>
+<tr>
+<th>Barang</th>
+<th>Harga</th>
+<th>Jumlah</th>
+<th>Total</th>
+</tr>
+</thead>
+<tbody id="tabel"></tbody>
+</table>
+
+<h3>Total: Rp <span id="grandtotal">0</span></h3>
+<h3>Untung: Rp <span id="untung">0</span></h3>
+
+<input type="number" id="bayar" placeholder="Uang Bayar">
+<h3>Kembalian: Rp <span id="kembalian">0</span></h3>
+
+<button onclick="hitungKembalian()">Hitung</button>
+<button onclick="simpanOnline()">💾 Simpan Online</button>
+
+<script>
+
+// LINK GOOGLE SCRIPT (SUDAH DIPASANG)
+const URL = "https://script.google.com/macros/s/AKfycbwQf6YCXBAK7rgAL0Sch2FgqsStMGULBk0CwDvf5XFZM4fAuTRrcpfmcWHB_fw6zNk/exec";
+
+// DATABASE BARANG
+let db = [
+    {kode:"B001", nama:"Beras", beli:10000, jual:12000, stok:50},
+    {kode:"B002", nama:"Gula", beli:12000, jual:14000, stok:40},
+];
+
+let data = [];
+
+function format(a){ return a.toLocaleString('id-ID'); }
+
+function cariBarang(){
+    let input = kode.value.toLowerCase();
+    let h = db.find(b => b.kode.toLowerCase()==input || b.nama.toLowerCase().includes(input));
+    if(h){
+        barang.value = h.nama;
+        harga.value = h.jual;
+    }
+}
+
+function tambah(){
+    let nama = barang.value;
+    let hrg = parseInt(harga.value);
+    let jml = parseInt(jumlah.value);
+
+    if(!nama || !hrg || !jml) return alert("Lengkapi!");
+
+    let b = db.find(x=>x.nama==nama);
+    if(b.stok < jml) return alert("Stok kurang!");
+
+    b.stok -= jml;
+
+    data.push({nama, harga:hrg, jumlah:jml});
+    render();
+
+    kode.value=""; barang.value=""; harga.value=""; jumlah.value="";
+}
+
+function render(){
+    tabel.innerHTML="";
+    let total=0, untung=0;
+
+    data.forEach(d=>{
+        let ttl = d.harga*d.jumlah;
+        total+=ttl;
+        let b = db.find(x=>x.nama==d.nama);
+        untung += (d.harga - b.beli)*d.jumlah;
+
+        tabel.innerHTML += `<tr>
+        <td>${d.nama}</td>
+        <td>${format(d.harga)}</td>
+        <td>${d.jumlah}</td>
+        <td>${format(ttl)}</td>
+        </tr>`;
+    });
+
+    grandtotal.innerText=format(total);
+    document.getElementById("untung").innerText=format(untung);
+}
+
+function hitungKembalian(){
+    let bayarVal = parseInt(bayar.value);
+    let total = data.reduce((s,d)=>s+d.harga*d.jumlah,0);
+    kembalian.innerText=format(bayarVal-total);
+}
+
+// 🔥 FUNGSI ONLINE
+function simpanOnline(){
+    let total = data.reduce((s,d)=>s+d.harga*d.jumlah,0);
+    let untung = data.reduce((s,d)=>{
+        let b=db.find(x=>x.nama==d.nama);
+        return s+(d.harga-b.beli)*d.jumlah;
+    },0);
+
+    let payload = {
+        barang: data.map(d=>d.nama).join(", "),
+        harga: total,
+        jumlah: data.length,
+        total: total,
+        untung: untung
+    };
+
+    fetch(URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+    })
+    .then(res=>alert("✅ Tersimpan ke Google Sheets"))
+    .catch(err=>alert("❌ Gagal kirim"));
+
+    data=[];
+    render();
+}
+
+</script>
+
+</body>
+</html>
