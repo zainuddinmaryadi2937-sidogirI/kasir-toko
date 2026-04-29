@@ -46,19 +46,15 @@
 <script>
 
 // 🔥 LINK GOOGLE SHEETS
-https://script.google.com/macros/s/AKfycbzlPZ35m9m_Cb7_v20ZoF6ePKbNiSqFZ2wslP5aN6TGlfW-0NchZKKUMZeNzZzCfgfy/exec
-let db = [];
+const URL = "https://script.google.com/macros/s/AKfycbwQf6YCXBAK7rgAL0Sch2FgqsStMGULBk0CwDvf5XFZM4fAuTRrcpfmcWHB_fw6zNk/exec";
 
-// 🔥 AMBIL DATA BARANG
-fetch(URL)
-.then(res => res.json())
-.then(dataBarang => {
-    db = dataBarang;
-    console.log("Barang masuk:", db);
-})
-.catch(err => {
-    alert("Gagal ambil data barang");
-});
+// DATABASE BARANG
+let db = [
+    {kode:"B001", nama:"Beras", beli:10000, jual:12000, stok:50},
+    {kode:"B002", nama:"Gula", beli:12000, jual:14000, stok:40},
+    {kode:"B003", nama:"Minyak", beli:15000, jual:18000, stok:30},
+];
+
 let data = [];
 
 function format(a){ return a.toLocaleString('id-ID'); }
